@@ -1,0 +1,14 @@
+
+[Unit]
+Description=Expose 22 port via cloudflare quick tunnel and notify with telegram
+After=network-online.target sshd.service
+Wants=network-online.target
+
+
+[Service]
+ExecStart="tesseikoDNS"
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+usage() {
+    echo "Usage: $0 [--test-config FILE]"
+}
+
+if [[ $# != 0 ]]; then
+    if [[ $# != 2 ]]; then
+        usage
+        exit 1
+    fi
+    if [[ $1 != "--test-config" ]]; then
+        usage
+        exit 1
+    fi
+    if [[ ! -f $2 ]]; then
+        echo $2 file not found
+        exit 1
+    fi
+fi
+
+if [[ $1 == "--test-config" ]]; then
+    CONFIG=$2
+else
+    CONFIG="${CONFIG:-/etc/tesseikoDNS/tesseikoDNS.conf}"
+fi
+source $CONFIG
+
+NO_FULL_CONFIG=full
+if [[ -z "$SERVER_NAME" ]]; then
+    echo "Set SERVER_NAME in config"
+    NO_FULL_CONFIG=
+fi
+
+if [[ -z "$TOKEN" ]]; then
+    echo "Set TOKEN in config"
+    NO_FULL_CONFIG=
+fi
+
+if [[ -z "$CHAT_ID" ]]; then
+    echo "Set CHAT_ID in config"
+    NO_FULL_CONFIG=
+fi
+
+if [[ -z "$NO_FULL_CONFIG" ]]; then
+    echo "edit config file before installing"
+    exit 1
+fi
+
+if [[ $1 == "--test-config" ]]; then
+    echo "config is set"
+    exit 0
+fi
+
+clean_up() {
+    echo cleaning up
+    rm sshDomain
+    exit
+}
+
+setup_error_handler() {
+    trap 'clean_up' ERR
+    trap 'clean_up' INT
+}
+
+run() {
+    cloudflared tunnel --url tcp://127.0.0.1:22 2> sshDomain &
+
+    while [ -z "${address}" ]; do
+        address=$(grep trycloudflare sshDomain | grep https | awk -F'|' '{gsub (/^[ \t]+|[ \t]+$/, "", $2); print $2}')
+    done
+
+    MESSAGE="🖥🌐 $SERVER_NAME SSH Online: $address"
+    MESSAGE_2="\` ssh -o ProxyCommand='cloudflared access tcp --hostname $address' \`"
+    MESSAGE_3="\` GIT_SSH_COMMAND=\"ssh -o ProxyCommand='cloudflared access tcp --hostname $address' \`"
+
+    echo $MESSAGE
+    echo $MESSAGE_2
+    echo $MESSAGE_3
+    curl -s -F chat_id="$CHAT_ID" -F text="$MESSAGE" "https://api.telegram.org/bot$TOKEN/sendMessage"
+    curl -s -F chat_id="$CHAT_ID" -F text="$MESSAGE_2" "https://api.telegram.org/bot$TOKEN/sendMessage"
+    curl -s -F chat_id="$CHAT_ID" -F text="$MESSAGE_3" "https://api.telegram.org/bot$TOKEN/sendMessage"
+
+    wait
+}
+
+setup_error_handler
+while true; do
+    run
+done
+clean_up
