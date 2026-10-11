@@ -2,9 +2,6 @@
 
 Expose SSH via [Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) and get notified on Telegram.
 
-tesseikoDNS is a service that uses cloudflare [quick tunnels]() to publish ssh 
-and notifies the user via a telegram bot.
-
 ## Prerequisites
 
 * `cloudflared` installed and in PATH
@@ -55,3 +52,6 @@ or
     - Right-click any message in the group and select **Copy Message/Post Link**.
     - Paste the link. If it looks like https://t.me/c/194xxxx987/11, the core number after /c/ is the chat ID (add -100 at the beginning for supergroups/channels, e.g., -100194xxxx987)
 
+## License
+
+GPLv3. See [LICENSE](LICENSE).
