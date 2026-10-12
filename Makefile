@@ -26,13 +26,18 @@ cloudflared:
 	@cloudflared -v >/dev/null || (echo "cloudflared is not installed. please install cloudflared;";exit 1)
 
 $(ETCDIR)/$(CONFIG_FILE): $(CONFIG_FILE) testconfig | $(ETCDIR)
-	@[ -f $@ ] && mv $@ $@.old || true
+	@if [ -f $@ ]; then \
+		diff $@ $(CONFIG_FILE) > /dev/null ; \
+		if [ $$? -eq 1 ]; then \
+			mv $@ $@.old || true; \
+		fi \
+	fi
 	cp $(CONFIG_FILE) $@
 	chmod 600 $@
 
 config: $(CONFIG_FILE) testconfig | $(ETCDIR)
 	@[ -f $(ETCDIR)/$(CONFIG_FILE) ] && mv $(ETCDIR)/$(CONFIG_FILE) $(ETCDIR)/$(CONFIG_FILE).old || true
-	cp config $(ETCDIR)/$(CONFIG_FILE)
+	cp $(CONFIG_FILE) $(ETCDIR)/$(CONFIG_FILE)
 	chmod 600 $(ETCDIR)/$(CONFIG_FILE)
 
 $(ETCDIR):
@@ -45,7 +50,7 @@ $(UNITDIR):
 	mkdir -p $@
 
 testconfig:
-	./tesseikoDNS --test-config $(CONFIG_FILE)
+	@[ -f $(ETCDIR)/$(CONFIG_FILE) ] || ./tesseikoDNS --test-config $(CONFIG_FILE)
 
 install: cloudflared $(ETCDIR)/$(CONFIG_FILE) tesseikoDNS tesseikoSSHDNS.service | $(BINDIR) $(UNITDIR)
 	cp tesseikoDNS $(BINDIR)/tesseikoDNS

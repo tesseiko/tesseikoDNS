@@ -94,8 +94,8 @@ run() {
     echo $MESSAGE_2
     echo $MESSAGE_3
     curl -s -F chat_id="$CHAT_ID" -F text="$MESSAGE" "https://api.telegram.org/bot$TOKEN/sendMessage"
-    curl -s -F chat_id="$CHAT_ID" -F text="$MESSAGE_2" "https://api.telegram.org/bot$TOKEN/sendMessage"
-    curl -s -F chat_id="$CHAT_ID" -F text="$MESSAGE_3" "https://api.telegram.org/bot$TOKEN/sendMessage"
+    curl -s -F parse_mode='MarkdownV2' -F chat_id="$CHAT_ID" -F text="$MESSAGE_2" "https://api.telegram.org/bot$TOKEN/sendMessage"
+    curl -s -F parse_mode='MarkdownV2' -F chat_id="$CHAT_ID" -F text="$MESSAGE_3" "https://api.telegram.org/bot$TOKEN/sendMessage"
 
     wait
 }
